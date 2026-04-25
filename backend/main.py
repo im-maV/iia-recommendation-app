@@ -3,7 +3,17 @@ from fastapi.responses import RedirectResponse
 from api.routes import recommendations, users, games
 from fastapi.middleware.cors import CORSMiddleware
 
-app = FastAPI()
+
+async def lifespan(app: FastAPI):
+    print("[startup] Inicializando server...")
+    # app.state.knn_recommender = 
+
+app = FastAPI(
+    title="Game Recommender API",
+    description="Sistema de recomendação de jogos - (content-based: KNN + TF-IDF)",
+    lifespan=lifespan
+
+)
 
 app.add_middleware(
     CORSMiddleware,
