@@ -1,32 +1,25 @@
 import { Routes } from '@angular/router';
-import { Register } from './components/register/register';
-import { Profile } from './components/profile/profile';
-import { RecommendedGames } from './components/recommended-games/recommended-games';
 
-export const routes: Routes = [{
-    path: "",
-    redirectTo: "users/register",
-    pathMatch: "full"
-  },
+const loadRegister = () =>
+  import('@components/register/register.component').then((m) => m.Register);
+
+const loadProfile = () => import('@components/profile/profile.component').then((m) => m.Profile);
+
+const loadRecommendations = () =>
+  import('@components/recommended-games/recommended-games.component').then(
+    (m) => m.RecommendedGames,
+  );
+
+export const routes: Routes = [
+  { path: '', redirectTo: 'users/register', pathMatch: 'full' },
   {
-    path: "users",
+    path: 'users',
     children: [
-      {
-        path: "register",
-        component: Register
-      },
-      {
-        path: "profile",
-        component: Profile
-      }
-    ]
+      { path: '', redirectTo: 'register', pathMatch: 'full' },
+      { path: 'register', loadComponent: loadRegister },
+      { path: 'profile', loadComponent: loadProfile },
+    ],
   },
-  {
-    path: "recommendations",
-    component: RecommendedGames
-  },
-  {
-    path: "**",
-    redirectTo: "users/register"
-  },
+  { path: 'recommendations', loadComponent: loadRecommendations },
+  { path: '**', redirectTo: 'users/register' },
 ];
