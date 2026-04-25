@@ -1,0 +1,11 @@
+li {
+  cursor: pointer;
+  padding: 8px;
+  border: 1px solid #ccc;
+  margin-bottom: 5px;
+}
+
+li.selected {
+  background-color: #4caf50;
+  color: white;
+}

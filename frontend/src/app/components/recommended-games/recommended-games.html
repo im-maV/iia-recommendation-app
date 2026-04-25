@@ -1,0 +1,7 @@
+<ul>
+  @for (game of user.games; track game.id) {
+    <li>
+      {{ game.name }} - {{ game.perspective }} - {{ game.genre }} - {{ game.category }}
+    </li>
+  }
+</ul>
