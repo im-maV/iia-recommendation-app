@@ -1,0 +1,33 @@
+<div class="app-shell profile-container">
+  <app-sidebar
+    [name]="user().name"
+    [sub]="sidebarConfig().sub"
+    [badge]="sidebarConfig().badge"
+    [currentStep]="sidebarConfig().currentStep"
+  />
+
+  <main class="profile-content">
+    @if (loading()) {
+      <div class="spinner-wrap">
+        <div class="spinner"></div>
+        <p class="spinner-label">
+          <fa-icon [icon]="icons.faWandMagicSparkles" />
+          Calculando recomendações da IA...
+        </p>
+      </div>
+    } @else {
+      @if (currentPhase() === 'select') {
+        <app-game-select [games]="randomGames()" (selectionFinished)="onSelectionFinished($event)">
+        </app-game-select>
+      }
+
+      @if (currentPhase() === 'rate') {
+        <app-game-rate
+          [selectedGames]="finalSelectedGames()"
+          (ratingsSubmitted)="onRatingsSubmitted($event)"
+        >
+        </app-game-rate>
+      }
+    }
+  </main>
+</div>

@@ -1,0 +1,34 @@
+<div class="rating-list">
+  @for (game of selectedGames(); track game.id) {
+    <div class="rating-row" [class.rated]="getRating(game.id) > 0">
+      <div class="rating-row-info">
+        <span class="rating-row-title">{{ game.name }}</span>
+        <span class="rating-row-genre">{{ game.genre }}</span>
+      </div>
+      <div class="stars">
+        @for (n of STARS; track n) {
+          <button
+            class="star"
+            [class.active]="n <= getRating(game.id)"
+            [title]="n + (n > 1 ? ' estrelas' : ' estrela')"
+            (click)="rate(game.id, n)"
+          >
+            <fa-icon [icon]="icons.faStar" />
+          </button>
+        }
+      </div>
+    </div>
+  }
+</div>
+
+@if (!allRated()) {
+  <div class="alert">
+    <fa-icon [icon]="icons.faTriangleExclamation" />
+    Avalie todos os jogos antes de continuar.
+  </div>
+}
+
+<button class="btn" [disabled]="!allRated()" (click)="submit()">
+  Enviar e ver recomendações
+  <fa-icon [icon]="icons.faArrowRight" />
+</button>
