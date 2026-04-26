@@ -33,6 +33,7 @@ export class RecommendedGames {
   };
 
   readonly user = this.userStoreService.user;
+  readonly gamesCount = computed(() => this.user()?.games?.length ?? 0);
 
   readonly currentStep = StepIndex.Results;
   readonly sidebarBadge: SidebarBadge = {
@@ -40,6 +41,10 @@ export class RecommendedGames {
     icon: faWandMagicSparkles,
     type: BadgeType.Done,
   };
+
+  matchPercent(score: number | undefined): string {
+    return score ? (score * 100).toFixed(0) : '0';
+  }
 
   restart() {
     this.userStoreService.reset();

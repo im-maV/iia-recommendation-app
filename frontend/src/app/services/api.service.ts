@@ -2,12 +2,8 @@ import { inject, Injectable } from '@angular/core';
 import { HttpClient, HttpResponse } from '@angular/common/http';
 import { Observable } from 'rxjs';
 import { environment } from '@environments/environment';
-import {
-  RecommendationsPayload,
-  RecommendationsResponse,
-  RegisterUserPayload,
-} from '@models/response.model';
-import { gameType, userType } from '@models/user-type.model';
+import { RecommendationsPayload, RegisterUserPayload } from '@models/response.model';
+import { GamesRated, gameType, userType } from '@models/user-type.model';
 
 @Injectable({ providedIn: 'root' })
 export class APIService {
@@ -26,10 +22,8 @@ export class APIService {
     return this.http.get<gameType[]>(`${this.apiUrl}/games`, { observe: 'response' });
   }
 
-  getRecommendations(
-    data: RecommendationsPayload,
-  ): Observable<HttpResponse<RecommendationsResponse>> {
-    return this.http.post<RecommendationsResponse>(`${this.apiUrl}/recommendations`, data, {
+  getRecommendations(data: RecommendationsPayload): Observable<HttpResponse<GamesRated[]>> {
+    return this.http.post<GamesRated[]>(`${this.apiUrl}/recommendations`, data, {
       observe: 'response',
     });
   }

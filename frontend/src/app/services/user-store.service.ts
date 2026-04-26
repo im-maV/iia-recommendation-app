@@ -1,5 +1,5 @@
 import { Injectable, signal } from '@angular/core';
-import { gameType, userType } from '@models/user-type.model';
+import { GamesRated, gameType, userType } from '@models/user-type.model';
 
 const EMPTY_USER: userType = {} as userType;
 
@@ -7,7 +7,7 @@ const EMPTY_USER: userType = {} as userType;
 export class UserStoreService {
   readonly user = signal<userType>(EMPTY_USER);
   readonly selectedGames = signal<gameType[]>([]);
-  readonly recommendedGames = signal<gameType[]>([]);
+  readonly recommendedGames = signal<GamesRated[]>([]);
 
   reset(): void {
     this.user.set(EMPTY_USER);

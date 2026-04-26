@@ -6,7 +6,7 @@ import {
   faTriangleExclamation,
   faArrowLeft,
 } from '@fortawesome/free-solid-svg-icons';
-import { gameType } from '@models/user-type.model';
+import { GamesRated, gameType } from '@models/user-type.model';
 
 @Component({
   selector: 'app-game-rate',
@@ -24,7 +24,7 @@ export class GameRate {
   };
 
   readonly selectedGames = input.required<gameType[]>();
-  readonly ratingsSubmitted = output<gameType[]>();
+  readonly ratingsSubmitted = output<GamesRated[]>();
   readonly backRequested = output<void>();
 
   readonly ratings = signal<Record<number, number>>({});
@@ -44,7 +44,7 @@ export class GameRate {
 
   submit(): void {
     if (!this.allRated()) return;
-    const ratedGames: gameType[] = this.selectedGames().map((game) => ({
+    const ratedGames: GamesRated[] = this.selectedGames().map((game) => ({
       ...game,
       rating: this.getRating(game.id),
     }));

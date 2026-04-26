@@ -13,7 +13,7 @@
         Game Recommendations
       </div>
       <h2 class="results-title">Suas recomendações</h2>
-      <p class="results-sub">Top 10 jogos baseados no seu perfil</p>
+      <p class="results-sub">Encontramos {{ gamesCount() }} jogos baseados no seu perfil</p>
     </div>
 
     <div class="rec-list">
@@ -21,7 +21,12 @@
         <div class="rec-card" [style.animation-delay]="i * 60 + 'ms'">
           <div class="rec-rank" [class.top]="i < 3">#{{ i + 1 }}</div>
           <div class="rec-info">
-            <div class="rec-title">{{ rec.name }}</div>
+            <div class="rec-header">
+              <div class="rec-title">{{ rec.name }}</div>
+              <div class="match-percent" [class.top]="i < 3">
+                {{ matchPercent(rec.similarity_score) }}%
+              </div>
+            </div>
             <div class="rec-tags">
               <span class="rec-tag">{{ rec.genre }}</span>
               <span class="rec-tag">{{ rec.category }}</span>
