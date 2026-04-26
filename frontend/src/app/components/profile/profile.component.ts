@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserStoreService } from '@services/user-store.service';
 import { APIService } from '@services/api.service';
@@ -26,7 +26,7 @@ interface SidebarConfig {
 
 const SIDEBAR_CONFIG: Record<ProfilePhase, SidebarConfig> = {
   select: {
-    sub: 'Escolha 5 jogos que você já jogou ou conhece.',
+    sub: 'Escolha entre 5 e 10 jogos que você já jogou ou conhece.',
     badge: { label: 'Seleção', icon: faListCheck, type: BadgeType.Select },
     currentStep: StepIndex.Select,
   },
@@ -48,7 +48,13 @@ export class Profile implements OnInit {
   private readonly apiService = inject(APIService);
   private readonly router = inject(Router);
 
-  readonly icons = { faGamepad, faListCheck, faStarHalfStroke, faCheck, faWandMagicSparkles };
+  readonly icons = {
+    faGamepad,
+    faListCheck,
+    faStarHalfStroke,
+    faCheck,
+    faWandMagicSparkles,
+  };
 
   readonly user = this.userStoreService.user;
 
@@ -59,13 +65,20 @@ export class Profile implements OnInit {
 
   readonly sidebarConfig = computed<SidebarConfig>(() => SIDEBAR_CONFIG[this.currentPhase()]);
 
+  constructor() {
+    effect(() => {
+      if (this.selectedGames().length >= 5) {
+        this.currentPhase.set('rate');
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.getGames();
   }
 
-  onSelectionFinished(games: gameType[]): void {
-    this.selectedGames.set(games);
-    this.currentPhase.set('rate');
+  goBackToSelect(): void {
+    this.currentPhase.set('select');
   }
 
   onRatingsSubmitted(ratedGames: gameType[]): void {

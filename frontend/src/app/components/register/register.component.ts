@@ -1,4 +1,4 @@
-import { Component, inject, signal } from '@angular/core';
+import { Component, computed, inject, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { UserStoreService } from '@services/user-store.service';
@@ -23,21 +23,28 @@ export class Register {
   private readonly apiService = inject(APIService);
   private readonly router = inject(Router);
 
-  readonly icons = { faGamepad, faArrowRight, faUser, faTriangleExclamation };
+  readonly icons = {
+    faGamepad,
+    faArrowRight,
+    faUser,
+    faTriangleExclamation,
+  };
 
   readonly inputName = signal('');
-  readonly showAlert = signal(false);
+  readonly alertMessage = signal('');
   readonly isLoading = signal(false);
+
+  readonly hasName = computed(() => this.inputName().trim().length > 0);
 
   onRegisterName(): void {
     const name = this.inputName().trim();
 
-    if (!name) {
-      this.showAlert.set(true);
+    if (!this.hasName()) {
+      this.alertMessage.set('Por favor, insira seu nome para continuar.');
       return;
     }
 
-    this.showAlert.set(false);
+    this.alertMessage.set('');
     this.isLoading.set(true);
 
     this.apiService
@@ -47,7 +54,7 @@ export class Register {
         next: ({ body }) => {
           if (!body) {
             console.error('[Register] Resposta sem body');
-            this.showAlert.set(true);
+            this.alertMessage.set('Algo deu errado, tente novamente.');
             return;
           }
           this.userStoreService.user.set(body);
@@ -55,8 +62,13 @@ export class Register {
         },
         error: (err: unknown) => {
           console.error('[Register] Erro ao registrar usuário:', err);
-          this.showAlert.set(true);
+          this.alertMessage.set('Não foi possível conectar ao servidor.');
         },
       });
+  }
+
+  onInputChange(value: string): void {
+    this.inputName.set(value);
+    if (value.trim()) this.alertMessage.set('');
   }
 }

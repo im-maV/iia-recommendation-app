@@ -1,6 +1,11 @@
 import { Component, computed, input, output, signal } from '@angular/core';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
-import { faStar, faArrowRight, faTriangleExclamation } from '@fortawesome/free-solid-svg-icons';
+import {
+  faStar,
+  faArrowRight,
+  faTriangleExclamation,
+  faArrowLeft,
+} from '@fortawesome/free-solid-svg-icons';
 import { gameType } from '@models/user-type.model';
 
 @Component({
@@ -10,11 +15,17 @@ import { gameType } from '@models/user-type.model';
   styleUrl: './game-rate.scss',
 })
 export class GameRate {
-  readonly icons = { faStar, faArrowRight, faTriangleExclamation };
   readonly STARS = [1, 2, 3, 4, 5] as const;
+  readonly icons = {
+    faStar,
+    faArrowRight,
+    faTriangleExclamation,
+    faArrowLeft,
+  };
 
   readonly selectedGames = input.required<gameType[]>();
   readonly ratingsSubmitted = output<gameType[]>();
+  readonly backRequested = output<void>();
 
   readonly ratings = signal<Record<number, number>>({});
 
@@ -39,5 +50,9 @@ export class GameRate {
     }));
 
     this.ratingsSubmitted.emit(ratedGames);
+  }
+
+  back(): void {
+    this.backRequested.emit();
   }
 }
