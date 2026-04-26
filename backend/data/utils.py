@@ -8,7 +8,6 @@ def get_allgames():
     file_path = os.path.join(BASE_DIR, "50_games.json")
 
     if os.path.exists(file_path):
-        print('existe cara')
         with open(file_path, "r", encoding="utf-8") as f:
             result = json.load(f)
     else:

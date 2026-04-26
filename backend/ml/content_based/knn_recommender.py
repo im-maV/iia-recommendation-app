@@ -193,19 +193,20 @@ def build_user_profile_positive_only(
     min_rating: float = 3.0,
 ) -> np.ndarray:
     """
-    Constroi o vetor de perfil do usuário usando APENAS jogos com rating >= min_rating.
+    Constroi o vetor de perfil do usuário priorizando jogos bem avaliados e desconsiderados jogos com rating = 1.
+    O valor do peso é dado por: weight = (rating - 1)/4, ou seja, gradiante variando em 25%
 
     Estratégia:
-        - Jogos com rating < min_rating são ignorados (peso = 0).
-        - Jogos com rating >= min_rating entram com um peso positivo,
-          por exemplo: peso = rating - (min_rating - 1)
+        - Jogos com rating = 1 são ignorados (peso = 0).
+        - Jogos com rating >= 3 são bastante considerados, na qual rating = 5
+        garente 100% de preferência
 
-          Ex. se min_rating = 3:
-              rating 5 -> peso = 3
-              rating 4 -> peso = 2
-              rating 3 -> peso = 1
-              rating 2 -> ignorado
-              rating 1 -> ignorado
+          Ex:
+              rating 5 -> peso = 1
+              rating 4 -> peso = 0.75
+              rating 3 -> peso = 0.5
+              rating 2 -> 0.25
+              rating 1 -> 0.0 (ignorado)
 
         Perfil = Σ (peso_i * vetor_i)/ Σ (peso_i), normalizado para norma unitaria.
 
@@ -234,13 +235,8 @@ def build_user_profile_positive_only(
             skipped.append(game_id)
             continue
 
-        # Ignora ratings abaixo do limiar
-        if rating < min_rating:
-            ignored_low.append((game_id, rating))
-            continue
-
-        # Ex.: min_rating = 3 -> pesos: 3->1, 4->2, 5->3
-        weight = rating - (min_rating - 1)
+        # Ex.:-> pesos: 1->0, 2->1, 3->2 ...
+        weight = (rating - 1)/4
 
         idx = id_to_index[game_id]
         game_vector = tfidf_matrix[idx].toarray().flatten()
@@ -396,9 +392,9 @@ if __name__ == "__main__":
     # 2. simulçao: dados mock
     user_ratings = [
         {"id": "227300",     "name": "Euro Truck Simulator 2",    "rating": 5},
-        {"id": "292030", "name": "The Witcher 3: Wild Hunt",     "rating": 1},
+        {"id": "292030", "name": "The Witcher 3: Wild Hunt",     "rating": 4},
         {"id": "814380",    "name": "Sekiro™: Shadows Die Twice - GOTY Edition", "rating": 1},
-        {"id": "730",     "name": "Counter-Strike 2",  "rating": 5},
+        {"id": "730",     "name": "Counter-Strike 2",  "rating": 4},
         {"id": "365670",     "name": "Blender",   "rating": 1},
     ]
 
