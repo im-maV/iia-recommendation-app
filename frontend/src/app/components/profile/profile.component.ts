@@ -52,9 +52,8 @@ export class Profile implements OnInit {
 
   readonly user = this.userStoreService.user;
 
-  readonly allGames = signal<gameType[]>([]);
-  readonly randomGames = signal<gameType[]>([]);
-  readonly finalSelectedGames = signal<gameType[]>([]);
+  readonly popularGames = signal<gameType[]>([]);
+  readonly selectedGames = signal<gameType[]>([]);
   readonly currentPhase = signal<ProfilePhase>('select');
   readonly loading = signal(false);
 
@@ -65,7 +64,7 @@ export class Profile implements OnInit {
   }
 
   onSelectionFinished(games: gameType[]): void {
-    this.finalSelectedGames.set(games);
+    this.selectedGames.set(games);
     this.currentPhase.set('rate');
   }
 
@@ -96,21 +95,11 @@ export class Profile implements OnInit {
           console.error('[Profile] Resposta sem body');
           return;
         }
-        this.allGames.set(body);
-        this.randomGames.set(this.pickRandom(body, 10));
+        this.popularGames.set(body);
       },
       error: (err: unknown) => {
         console.error('[Profile] Erro ao carregar jogos:', err);
       },
     });
-  }
-
-  private pickRandom<T>(arr: T[], count: number): T[] {
-    const shuffled = [...arr];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled.slice(0, count);
   }
 }

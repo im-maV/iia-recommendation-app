@@ -17,16 +17,17 @@
       </div>
     } @else {
       @if (currentPhase() === 'select') {
-        <app-game-select [games]="randomGames()" (selectionFinished)="onSelectionFinished($event)">
-        </app-game-select>
+        <app-game-select
+          [games]="popularGames()"
+          (selectionFinished)="onSelectionFinished($event)"
+        />
       }
 
       @if (currentPhase() === 'rate') {
         <app-game-rate
-          [selectedGames]="finalSelectedGames()"
+          [selectedGames]="selectedGames()"
           (ratingsSubmitted)="onRatingsSubmitted($event)"
-        >
-        </app-game-rate>
+        />
       }
     }
   </main>

@@ -1,9 +1,6 @@
 """
-matrix_utils.py
----------------
-Geração da matriz de utilidade para o sistema de recomendação de jogos.
-Projeto 1 - Introdução à Inteligência Artificial, UnB 2026/1
-
+Matriz de Utilidade
+===================
 Estratégia:
     Simula o comportamento de usuários reais via perfis definidos em config.py.
     A nota depende de quantas características do jogo batem com o perfil,
