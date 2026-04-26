@@ -1,0 +1,47 @@
+.field {
+  display: flex;
+  flex-direction: column;
+  gap: 0.6rem;
+  margin-bottom: 1.5rem;
+
+  label {
+    display: flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: var(--text-xs);
+    letter-spacing: 0.12em;
+    text-transform: uppercase;
+    color: var(--muted);
+
+    fa-icon {
+      font-size: 0.65rem;
+      opacity: 0.7;
+    }
+  }
+
+  input[type='text'],
+  input[type='password'],
+  input[type='email'] {
+    background: rgba(var(--white-rgb), 0.03);
+    border: 1.5px solid var(--border);
+    border-radius: var(--r);
+    padding: 1.05rem 1.25rem;
+    color: var(--text);
+    font-family: var(--font-sans);
+    font-size: 1.05rem;
+    outline: none;
+    transition:
+      border-color var(--t-base),
+      background var(--t-base);
+
+    &:focus {
+      border-color: var(--accent);
+      background: rgba(var(--accent-rgb), 0.03);
+    }
+
+    &::placeholder {
+      color: var(--muted);
+      opacity: 0.55;
+    }
+  }
+}

@@ -1,0 +1,27 @@
+<div class="select-header">
+  <p class="select-label">Selecione 5 jogos que você conhece</p>
+  <span class="select-count" [class.complete]="selectedIds().size === MAX_SELECTED">
+    {{ selectedIds().size }}/{{ MAX_SELECTED }}
+  </span>
+</div>
+
+<ul class="game-grid">
+  @for (game of games(); track game.id) {
+    <li class="game-card" [class.selected]="selectedIds().has(game.id)" (click)="toggle(game)">
+      <div class="game-card-check">
+        @if (selectedIds().has(game.id)) {
+          <fa-icon [icon]="icons.faCheck" />
+        }
+      </div>
+      <span class="game-name">{{ game.name }}</span>
+      <span class="game-tag">{{ game.genre }}</span>
+      <span class="game-tag">{{ game.category }}</span>
+      <span class="game-tag">{{ game.perspective }}</span>
+    </li>
+  }
+</ul>
+
+<button class="btn" [disabled]="selectedIds().size !== MAX_SELECTED" (click)="confirm()">
+  Ir para avaliação
+  <fa-icon [icon]="icons.faArrowRight" />
+</button>

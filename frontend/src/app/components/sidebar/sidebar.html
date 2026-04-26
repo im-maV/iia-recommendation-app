@@ -1,0 +1,32 @@
+<aside class="sidebar">
+  <div class="sidebar-user">
+    <span class="sidebar-greeting"> Bem-vindo </span>
+    <h2 class="sidebar-name">{{ name() }}</h2>
+    <p class="sidebar-sub">{{ sub() }}</p>
+
+    @if (badge(); as currentBadge) {
+      <span
+        class="phase-badge"
+        [class.phase-select]="currentBadge.type === BadgeType.Select"
+        [class.phase-rate]="currentBadge.type === BadgeType.Rate"
+        [class.phase-done]="currentBadge.type === BadgeType.Done"
+      >
+        <fa-icon [icon]="currentBadge.icon" />
+        {{ currentBadge.label }}
+      </span>
+    }
+  </div>
+
+  <div class="progress-steps">
+    @for (step of steps(); track step.index) {
+      <div class="step" [class.active]="step.isActive" [class.done]="step.isDone">
+        <span class="step-dot">
+          @if (step.isDone) {
+            <fa-icon [icon]="icons.faCheck" />
+          }
+        </span>
+        <span class="step-label">{{ step.label }}</span>
+      </div>
+    }
+  </div>
+</aside>

@@ -1,0 +1,54 @@
+<div class="app-shell register-wrapper">
+  <div class="register-panel">
+    <div class="panel-icon">
+      <fa-icon [icon]="icons.faGamepad" />
+    </div>
+    <div class="panel-tagline">
+      <p class="panel-label">Game Recommendations</p>
+      <p class="panel-quote">Descubra seu próximo<br />jogo favorito.</p>
+    </div>
+  </div>
+
+  <div class="register-form-area">
+    <div class="register-header">
+      <div class="logo">
+        <fa-icon [icon]="icons.faGamepad" />
+        GameRec
+      </div>
+      <h1 class="headline">Crie sua<br /><span>conta.</span></h1>
+      <p class="sub">Diga como quer ser chamado para começar.</p>
+    </div>
+
+    <div class="field">
+      <label for="userName">
+        <fa-icon [icon]="icons.faUser" />
+        Nome de usuário
+      </label>
+      <input
+        id="userName"
+        type="text"
+        placeholder="Como você se chama?"
+        maxlength="40"
+        [ngModel]="inputName()"
+        (ngModelChange)="inputName.set($event)"
+        (keyup.enter)="onRegisterName()"
+      />
+    </div>
+
+    @if (showAlert()) {
+      <div class="alert">
+        <fa-icon [icon]="icons.faTriangleExclamation" />
+        Por favor, insira seu nome para continuar.
+      </div>
+    }
+
+    <button class="btn" [disabled]="isLoading()" (click)="onRegisterName()">
+      @if (isLoading()) {
+        <span class="spinner"></span>
+      } @else {
+        Criar conta
+        <fa-icon [icon]="icons.faArrowRight" />
+      }
+    </button>
+  </div>
+</div>

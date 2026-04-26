@@ -1,0 +1,42 @@
+<div class="app-shell rec-container">
+  <app-sidebar
+    [name]="user().name"
+    [badge]="sidebarBadge"
+    [currentStep]="currentStep"
+    sub="Suas recomendações personalizadas estão prontas."
+  />
+
+  <main class="profile-content">
+    <div class="results-header">
+      <div class="logo">
+        <fa-icon [icon]="icons.faGamepad" />
+        Game Recommendations
+      </div>
+      <h2 class="results-title">Suas recomendações</h2>
+      <p class="results-sub">Top 10 jogos baseados no seu perfil</p>
+    </div>
+
+    <div class="rec-list">
+      @for (rec of user().games; track rec.id; let i = $index) {
+        <div class="rec-card" [style.animation-delay]="i * 60 + 'ms'">
+          <div class="rec-rank" [class.top]="i < 3">#{{ i + 1 }}</div>
+          <div class="rec-info">
+            <div class="rec-title">{{ rec.name }}</div>
+            <div class="rec-tags">
+              <span class="rec-tag">{{ rec.genre }}</span>
+              <span class="rec-tag">{{ rec.category }}</span>
+              <span class="rec-tag">{{ rec.perspective }}</span>
+            </div>
+          </div>
+        </div>
+      }
+    </div>
+
+    <div class="rec-footer">
+      <button class="btn btn--outline" (click)="restart()">
+        <fa-icon [icon]="icons.faRotateLeft" />
+        Recomeçar
+      </button>
+    </div>
+  </main>
+</div>
