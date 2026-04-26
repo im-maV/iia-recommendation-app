@@ -5,6 +5,7 @@ from fastapi.middleware.cors import CORSMiddleware
 from contextlib import asynccontextmanager
 
 from data.data_loader import get_utility_matrix
+from ml.content_based.knn_recommender import KNNRecommender
 
 
 @asynccontextmanager
@@ -12,7 +13,10 @@ async def lifespan(app: FastAPI):
     print("[startup] Inicializando server...")
     app.state.utility_matrix = get_utility_matrix()
     print(f"[startup] Matriz carregada: {app.state.utility_matrix.shape}")
-    # app.state.knn_recommender =
+    recommender = KNNRecommender()
+    recommender.fit()
+    app.state.knn_recommender = recommender
+
     yield
     print("[shutdown] Encerrando server.")
 

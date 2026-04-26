@@ -14,7 +14,7 @@ import {
   faWandMagicSparkles,
 } from '@fortawesome/free-solid-svg-icons';
 import { BadgeType, SidebarBadge, StepIndex } from '@models/sidebar.model';
-import { gameType } from '@models/user-type.model';
+import { GamesRated, gameType } from '@models/user-type.model';
 
 type ProfilePhase = 'select' | 'rate';
 
@@ -81,16 +81,15 @@ export class Profile implements OnInit {
     this.currentPhase.set('select');
   }
 
-  onRatingsSubmitted(ratedGames: gameType[]): void {
+  onRatingsSubmitted(ratedGames: GamesRated[]): void {
     this.loading.set(true);
-
     this.apiService.getRecommendations({ games: ratedGames }).subscribe({
       next: ({ body }) => {
         if (!body) {
           console.error('[Profile] Resposta sem body');
           return;
         }
-        this.userStoreService.user.set({ ...this.user(), games: body.games });
+        this.userStoreService.user.set({ ...this.user(), games: body });
         this.router.navigate(['recommendations']);
       },
       error: (err: unknown) => {

@@ -9,20 +9,20 @@ Referências:
 - Russell, S., Norvig, P. Artificial Intelligence - A Modern Approach (4th ed). Pearson, 2021.
 """
 
-import json
-import numpy as np
-import pandas as pd
-from sklearn.feature_extraction.text import TfidfVectorizer
-from sklearn.feature_extraction.text import CountVectorizer
-from sklearn.metrics.pairwise import cosine_similarity
-from sklearn.neighbors import NearestNeighbors
-from typing import List, Dict
 import os
 import sys
-
+import json
+from typing import List, Dict
+import numpy as np
+import pandas as pd
+from sklearn.feature_extraction.text import CountVectorizer
+from sklearn.metrics.pairwise import cosine_similarity
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+GAMES_FILE_PATH = os.path.abspath(
+    os.path.join(BASE_DIR, "../..", "data", "50_games.json")
+)
 
 
 def load_games(filepath: str) -> pd.DataFrame:
@@ -49,7 +49,7 @@ def load_games(filepath: str) -> pd.DataFrame:
 
 def build_feature_string(game: pd.Series) -> str:
     """
-    (Funçao auxiliar) Concatena as 3 características de um jogo 
+    (Funçao auxiliar) Concatena as 3 características de um jogo
     em uma única string.
 
     Essa string será usada pelo TF-IDF para gerar o vetor do jogo.
@@ -68,15 +68,13 @@ def build_feature_string(game: pd.Series) -> str:
     return f"{game['genre']} {game['perspective']} {game['category']}"
 
 
-
-
 def build_tfidf_matrix(games_df: pd.DataFrame):
     """
     Aplica TF-IDF sobre as caracteristicas dos jogos para gerar vetores numericos.
 
     TF-IDF (Term Frequency - Inverse Document Frequency):
         - TF: frequencia do termo no documento (aqui, documento é a string com as caracteristicas do jogo)
-        - IDF: penaliza termos que aparecem em muitos jogos 
+        - IDF: penaliza termos que aparecem em muitos jogos
 
     Resultado: cada jogo vira um vetor numerico onde caracteristicas raras/distintivas
     tem pesos maiores, capturando melhor a identidade de cada jogo.
@@ -88,14 +86,13 @@ def build_tfidf_matrix(games_df: pd.DataFrame):
         tfidf_matrix: matriz esparsa (n_jogos x n_termos_unicos, i.e: 50x12)
         vectorizer: objeto TfidfVectorizer treinado (necessario para vetorizar o usuário)
     """
-    
+
     games_df = games_df.copy()
     games_df["features"] = games_df.apply(build_feature_string, axis=1)
 
-
-    # TF-IDF com analise de palavras individuais 
+    # TF-IDF com analise de palavras individuais
     vectorizer = CountVectorizer(binary=True, analyzer="word", token_pattern=r"[^\s]+")
-    #vectorizer = TfidfVectorizer(analyzer="word", token_pattern=r"[^\s]+")
+    # vectorizer = TfidfVectorizer(analyzer="word", token_pattern=r"[^\s]+")
     tfidf_matrix = vectorizer.fit_transform(games_df["features"])
 
     print(f"[TF-IDF] Vocabulário gerado: {vectorizer.get_feature_names_out()}")
@@ -116,16 +113,16 @@ def build_user_profile(
     Estrategia:
         Ratings são centralizados em torno do ponto médio da escala (3.0)
         antes de serem usados como peso. Isso garante que:
- 
+
             rating 5 → peso +2.0  → puxa o perfil PARA essas características
             rating 4 → peso +1.0  → influência positiva moderada
             rating 3 → peso  0.0  → neutro, não influencia o perfil
             rating 2 → peso -1.0  → puxa o perfil PARA LONGE dessas características
             rating 1 → peso -2.0  → afasta fortemente o perfil dessas características
- 
+
         perfil = Σ (centered_rating_i x vetor_i)
                  normalizado para norma unitaria
- 
+
     Referência: Géron, Hands-On ML, cap. 3 — Content-Based Filtering.
 
     Args:
@@ -139,34 +136,34 @@ def build_user_profile(
     """
     # Mapeia game_id → índice na matriz TF-IDF
     id_to_index = {str(game_id): idx for idx, game_id in enumerate(games_df["id"])}
- 
+
     weighted_sum = np.zeros(tfidf_matrix.shape[1])
     games_used = []
     skipped = []
- 
+
     for entry in user_ratings:
         game_id = str(entry["id"])
-        rating  = entry.get("rating", rating_scale_mid)
- 
+        rating = entry.get("rating", rating_scale_mid)
+
         if game_id not in id_to_index:
             skipped.append(game_id)
             continue
- 
+
         # Centraliza o rating: transforma 1-5 em -2 a +2
         centered_weight = rating - rating_scale_mid
- 
-        idx         = id_to_index[game_id]
+
+        idx = id_to_index[game_id]
         game_vector = tfidf_matrix[idx].toarray().flatten()
- 
+
         weighted_sum += centered_weight * game_vector
         games_used.append((game_id, rating, centered_weight))
- 
+
     if skipped:
         print(f"[Perfil] Jogos não encontrados no catálogo (ignorados): {skipped}")
- 
+
     if len(games_used) == 0:
         raise ValueError("Nenhum jogo válido encontrado nos ratings do usuário.")
- 
+
     # Normaliza o vetor resultante (norma L2 = 1)
     # Necessário pois a soma pode resultar em vetores de magnitudes muito diferentes
     norm = np.linalg.norm(weighted_sum)
@@ -174,16 +171,16 @@ def build_user_profile(
         user_vector = weighted_sum / norm
     else:
         # Todos os ratings eram 3 (neutros) — perfil zerado, sem preferência clara
-        print("[Perfil] AVISO: todos os ratings são neutros (=3). Perfil sem direção clara.")
+        print(
+            "[Perfil] AVISO: todos os ratings são neutros (=3). Perfil sem direção clara."
+        )
         user_vector = weighted_sum
- 
+
     print(f"[Perfil] Jogos usados (id, rating, peso_centralizado):")
     for gid, r, w in games_used:
         print(f"         id={gid}  rating={r}  peso={w:+.1f}")
- 
+
     return user_vector.reshape(1, -1)
-
-
 
 
 def build_user_profile_positive_only(
@@ -236,7 +233,7 @@ def build_user_profile_positive_only(
             continue
 
         # Ex.:-> pesos: 1->0, 2->1, 3->2 ...
-        weight = (rating - 1)/4
+        weight = (rating - 1) / 4
 
         idx = id_to_index[game_id]
         game_vector = tfidf_matrix[idx].toarray().flatten()
@@ -248,11 +245,15 @@ def build_user_profile_positive_only(
     if skipped:
         print(f"[Perfil] Jogos não encontrados no catálogo (ignorados): {skipped}")
     if ignored_low:
-        print(f"[Perfil] Jogos ignorados por rating baixo (<{min_rating}): {ignored_low}")
+        print(
+            f"[Perfil] Jogos ignorados por rating baixo (<{min_rating}): {ignored_low}"
+        )
 
     if len(games_used) == 0:
-        raise ValueError("Nenhum jogo com rating >= min_rating encontrado para o usuário.")
-    
+        raise ValueError(
+            "Nenhum jogo com rating >= min_rating encontrado para o usuário."
+        )
+
     if sum_weights > 0:
         user_vector = weighted_sum / sum_weights
     else:
@@ -273,7 +274,6 @@ def build_user_profile_positive_only(
 
     print("[Perfil]")
     return user_vector.reshape(1, -1)
-
 
 
 def find_knn_recommendations(
@@ -321,15 +321,14 @@ def find_knn_recommendations(
 
     # Ordena por similaridade decrescente e retorna top-K
     recommendations = (
-        results
-        .sort_values("similarity_score", ascending=False)
+        results.sort_values("similarity_score", ascending=False)
         .head(k)
         .reset_index(drop=True)
     )
 
-    return recommendations[["id", "name", "genre", "perspective", "category", "similarity_score"]]
-
-
+    return recommendations[
+        ["id", "name", "genre", "perspective", "category", "similarity_score"]
+    ]
 
 
 class KNNRecommender:
@@ -338,8 +337,8 @@ class KNNRecommender:
     classe principal do sistema de recomendação KNN content-based.
     """
 
-    def __init__(self, games_filepath: str, k: int = 15):
-        self.games_filepath = games_filepath
+    def __init__(self, k: int = 15):
+        self.games_filepath = GAMES_FILE_PATH
         self.games_df = None
         self.tfidf_matrix = None
         self.vectorizer = None
@@ -349,12 +348,14 @@ class KNNRecommender:
     def fit(self):
         """Carrega os dados e treina o TF-IDF (base de conhecimento)"""
         self.games_df = load_games(self.games_filepath)
-        self.tfidf_matrix, self.vectorizer, self.games_df = build_tfidf_matrix(self.games_df)
+        self.tfidf_matrix, self.vectorizer, self.games_df = build_tfidf_matrix(
+            self.games_df
+        )
         self._fitted = True
         print(f"[KNNRecommender] Pronto. {len(self.games_df)} jogos carregados.")
         return self
 
-    def recommend(self, user_ratings: List[Dict]) -> pd.DataFrame:
+    def recommend(self, user_ratings: List[Dict]):
         """
         Recebe os ratings do usuário e retorna os K jogos mais recomendados.
 
@@ -364,41 +365,44 @@ class KNNRecommender:
         Returns:
             DataFrame com top-K recomendações e scores de similaridade
         """
-        k = self.k
         if not self._fitted:
             raise RuntimeError("Chame fit() antes de recommend().")
 
-        user_vector = build_user_profile_positive_only(user_ratings, self.games_df, self.tfidf_matrix)
-        recommendations = find_knn_recommendations(
-            user_vector, self.tfidf_matrix, self.games_df, user_ratings, k=k
+        user_vector = build_user_profile_positive_only(
+            user_ratings, self.games_df, self.tfidf_matrix
         )
-        return recommendations
 
+        recs_df = find_knn_recommendations(
+            user_vector, self.tfidf_matrix, self.games_df, user_ratings, k=self.k
+        )
+
+        return recs_df.to_dict(orient="records")
 
 
 if __name__ == "__main__":
-    GAMES_FILE_PATH = os.path.abspath(
-        os.path.join(BASE_DIR, "../..", "data", "50_games.json")
-    )
     if not os.path.exists(GAMES_FILE_PATH):
         print("arquivo nao encontrado: ", GAMES_FILE_PATH)
         sys.exit()
 
     # 1. Inicializa e treina o recomendador
     k_neighb = 25
-    recommender = KNNRecommender(GAMES_FILE_PATH, k=k_neighb)
+    recommender = KNNRecommender(k=k_neighb)
     recommender.fit()
 
     # 2. simulçao: dados mock
     user_ratings = [
-        {"id": "227300",     "name": "Euro Truck Simulator 2",    "rating": 5},
-        {"id": "292030", "name": "The Witcher 3: Wild Hunt",     "rating": 4},
-        {"id": "814380",    "name": "Sekiro™: Shadows Die Twice - GOTY Edition", "rating": 1},
-        {"id": "730",     "name": "Counter-Strike 2",  "rating": 4},
-        {"id": "365670",     "name": "Blender",   "rating": 1},
+        {"id": "227300", "name": "Euro Truck Simulator 2", "rating": 5},
+        {"id": "292030", "name": "The Witcher 3: Wild Hunt", "rating": 4},
+        {
+            "id": "814380",
+            "name": "Sekiro™: Shadows Die Twice - GOTY Edition",
+            "rating": 1,
+        },
+        {"id": "730", "name": "Counter-Strike 2", "rating": 4},
+        {"id": "365670", "name": "Blender", "rating": 1},
     ]
 
     recommendations = recommender.recommend(user_ratings)
 
     print(f"\n=== TOP {k_neighb} JOGOS RECOMENDADOS ===")
-    print(recommendations.to_string(index=False))
+    print(pd.DataFrame(recommendations).to_string(index=False))

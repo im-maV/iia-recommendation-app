@@ -1,8 +1,7 @@
 export interface userType {
   id: number;
   name: string;
-  games: gameType[];
-  ratings: {};
+  games: GamesRated[];
 }
 
 export interface gameType {
@@ -11,4 +10,9 @@ export interface gameType {
   genre: string;
   perspective: string;
   category: string;
+}
+
+export interface GamesRated extends gameType {
+  rating: number;
+  similarity_score?: number;
 }

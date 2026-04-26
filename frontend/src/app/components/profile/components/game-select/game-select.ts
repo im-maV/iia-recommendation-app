@@ -1,4 +1,4 @@
-import { Component, computed, effect, input, model, output, signal } from '@angular/core';
+import { Component, computed, input, linkedSignal, model } from '@angular/core';
 import { faArrowRight, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { gameType } from '@models/user-type.model';
@@ -18,23 +18,14 @@ export class GameSelect {
   readonly games = input.required<gameType[]>();
   readonly selectedGames = model<gameType[]>([]);
 
-  private readonly selectedMap = signal<Map<number, gameType>>(new Map());
+  private readonly selectedMap = linkedSignal(() => {
+    const initial = this.selectedGames();
+    return initial.length > 0 ? new Map(initial.map((g) => [g.id, g])) : new Map();
+  });
 
   readonly selectedIds = computed(() => new Set(this.selectedMap().keys()));
   readonly selectedCount = computed(() => this.selectedMap().size);
   readonly canConfirm = computed(() => this.selectedCount() >= this.MIN_SELECTED);
-
-  constructor() {
-    effect(
-      () => {
-        const initial = this.selectedGames();
-        if (initial.length > 0 && this.selectedMap().size === 0) {
-          this.selectedMap.set(new Map(initial.map((g) => [g.id, g])));
-        }
-      },
-      { allowSignalWrites: true },
-    );
-  }
 
   isSelected(gameId: number): boolean {
     return this.selectedIds().has(gameId);
