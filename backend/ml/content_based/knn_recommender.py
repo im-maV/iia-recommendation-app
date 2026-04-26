@@ -16,6 +16,7 @@ from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.neighbors import NearestNeighbors
+from similarity_algorithms import cosine, manhattan
 from typing import List, Dict
 import os
 import sys
@@ -23,6 +24,9 @@ import sys
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+GAMES_FILE_PATH = os.path.abspath(
+        os.path.join(BASE_DIR, "../..", "data", "50_games.json")
+    )
 
 
 def load_games(filepath: str) -> pd.DataFrame:
@@ -65,7 +69,11 @@ def build_feature_string(game: pd.Series) -> str:
     Returns:
         String com as características concatenadas
     """
-    return f"{game['genre']} {game['perspective']} {game['category']}"
+    genre = str(game['genre']).replace(' ', '_')
+    perspective = str(game['perspective']).replace(' ', '_')
+    category = str(game['category']).replace(' ', '_')
+
+    return f"{genre} {perspective} {category}"
 
 
 
@@ -94,8 +102,8 @@ def build_tfidf_matrix(games_df: pd.DataFrame):
 
 
     # TF-IDF com analise de palavras individuais 
-    vectorizer = CountVectorizer(binary=True, analyzer="word", token_pattern=r"[^\s]+")
-    #vectorizer = TfidfVectorizer(analyzer="word", token_pattern=r"[^\s]+")
+    #vectorizer = CountVectorizer(binary=True, analyzer="word", token_pattern=r"[^\s]+")
+    vectorizer = TfidfVectorizer(analyzer="word", token_pattern=r"[^\s]+")
     tfidf_matrix = vectorizer.fit_transform(games_df["features"])
 
     print(f"[TF-IDF] Vocabulário gerado: {vectorizer.get_feature_names_out()}")
@@ -310,7 +318,7 @@ def find_knn_recommendations(
     tfidf_dense = tfidf_matrix.toarray()
 
     # Calcula similaridade de cosseno entre perfil do usuário e todos os jogos
-    similarities = cosine_similarity(user_vector, tfidf_dense).flatten()
+    similarities = cosine(user_vector, tfidf_dense).flatten()
 
     # Monta DataFrame com scores
     results = games_df.copy()
@@ -338,8 +346,8 @@ class KNNRecommender:
     classe principal do sistema de recomendação KNN content-based.
     """
 
-    def __init__(self, games_filepath: str, k: int = 15):
-        self.games_filepath = games_filepath
+    def __init__(self, k: int = 15):
+        self.games_filepath = GAMES_FILE_PATH
         self.games_df = None
         self.tfidf_matrix = None
         self.vectorizer = None
@@ -354,7 +362,7 @@ class KNNRecommender:
         print(f"[KNNRecommender] Pronto. {len(self.games_df)} jogos carregados.")
         return self
 
-    def recommend(self, user_ratings: List[Dict]) -> pd.DataFrame:
+    def recommend(self, user_ratings: List[Dict], k: int = None):
         """
         Recebe os ratings do usuário e retorna os K jogos mais recomendados.
 
@@ -364,7 +372,7 @@ class KNNRecommender:
         Returns:
             DataFrame com top-K recomendações e scores de similaridade
         """
-        k = self.k
+        k = k if k is not None else self.k
         if not self._fitted:
             raise RuntimeError("Chame fit() antes de recommend().")
 
@@ -372,33 +380,30 @@ class KNNRecommender:
         recommendations = find_knn_recommendations(
             user_vector, self.tfidf_matrix, self.games_df, user_ratings, k=k
         )
-        return recommendations
+        return recommendations.to_dict(orient="records")
 
 
 
 if __name__ == "__main__":
-    GAMES_FILE_PATH = os.path.abspath(
-        os.path.join(BASE_DIR, "../..", "data", "50_games.json")
-    )
     if not os.path.exists(GAMES_FILE_PATH):
         print("arquivo nao encontrado: ", GAMES_FILE_PATH)
         sys.exit()
 
     # 1. Inicializa e treina o recomendador
     k_neighb = 25
-    recommender = KNNRecommender(GAMES_FILE_PATH, k=k_neighb)
+    recommender = KNNRecommender(k=k_neighb)
     recommender.fit()
 
     # 2. simulçao: dados mock
     user_ratings = [
-        {"id": "227300",     "name": "Euro Truck Simulator 2",    "rating": 5},
-        {"id": "292030", "name": "The Witcher 3: Wild Hunt",     "rating": 4},
-        {"id": "814380",    "name": "Sekiro™: Shadows Die Twice - GOTY Edition", "rating": 1},
-        {"id": "730",     "name": "Counter-Strike 2",  "rating": 4},
-        {"id": "365670",     "name": "Blender",   "rating": 1},
+        {"id": "227300",  "rating": 5},
+        {"id": "292030",  "rating": 3},
+        {"id": "814380",   "rating": 1},
+        {"id": "730",   "rating": 2},
+        {"id": "365670",  "rating": 1},
     ]
 
     recommendations = recommender.recommend(user_ratings)
 
     print(f"\n=== TOP {k_neighb} JOGOS RECOMENDADOS ===")
-    print(recommendations.to_string(index=False))
+    print(pd.DataFrame(recommendations).to_string(index=False))
