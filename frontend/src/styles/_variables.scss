@@ -1,0 +1,38 @@
+:root {
+  // Cores Sólidas
+  --bg: #0d0f14;
+  --surface: #161a22;
+  --border: #252b38;
+  --accent: #c8ff3e;
+  --accent2: #ff6b35;
+  --text: #e8ecf4;
+  --muted: #5a6278;
+  --danger: #ff4757;
+
+  // RGB (Para usar com opacidade)
+  --bg-rgb: 13, 15, 20;
+  --accent-rgb: 200, 255, 62;
+  --danger-rgb: 255, 71, 87;
+  --white-rgb: 255, 255, 255;
+
+  // Tipografia (Fontes e Escala)
+  --font-sans: 'Syne', sans-serif;
+  --font-mono: 'DM Mono', monospace;
+
+  --text-xs: 0.72rem; // Labels, pequenos avisos
+  --text-sm: 0.85rem; // Subtítulos, gêneros de jogos
+  --text-base: 1rem; // Textos padrão, botões
+  --text-lg: 1.25rem; // Títulos de blocos menores
+  --text-xl: 1.5rem; // Títulos de Modais
+  --text-2xl: 2rem; // Títulos de Telas
+  --text-3xl: clamp(2.4rem, 4vw, 3.4rem); // Títulos Gigantes Responsivos
+
+  // Layout & Espaçamento
+  --w-max: 1040px; // Largura padrão
+  --p-box: 3.5rem; // Padding padrão dentro das caixas
+
+  // Medidas & Transições
+  --r: 12px;
+  --t-fast: 0.15s ease;
+  --t-base: 0.2s ease;
+}
