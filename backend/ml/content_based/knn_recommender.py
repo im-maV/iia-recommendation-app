@@ -13,6 +13,7 @@ import json
 import numpy as np
 import pandas as pd
 from sklearn.feature_extraction.text import TfidfVectorizer
+from sklearn.feature_extraction.text import CountVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
 from sklearn.neighbors import NearestNeighbors
 from typing import List, Dict
@@ -22,6 +23,7 @@ import sys
 
 
 BASE_DIR = os.path.dirname(os.path.abspath(__file__))
+
 
 def load_games(filepath: str) -> pd.DataFrame:
     """
@@ -92,7 +94,8 @@ def build_tfidf_matrix(games_df: pd.DataFrame):
 
 
     # TF-IDF com analise de palavras individuais 
-    vectorizer = TfidfVectorizer(analyzer="word", token_pattern=r"[^\s]+")
+    vectorizer = CountVectorizer(binary=True, analyzer="word", token_pattern=r"[^\s]+")
+    #vectorizer = TfidfVectorizer(analyzer="word", token_pattern=r"[^\s]+")
     tfidf_matrix = vectorizer.fit_transform(games_df["features"])
 
     print(f"[TF-IDF] Vocabulário gerado: {vectorizer.get_feature_names_out()}")
@@ -120,11 +123,8 @@ def build_user_profile(
             rating 2 → peso -1.0  → puxa o perfil PARA LONGE dessas características
             rating 1 → peso -2.0  → afasta fortemente o perfil dessas características
  
-        Sem centralização, rating 1 ainda contribui positivamente para o perfil,
-        contaminando-o com características que o usuário claramente não gosta.
- 
         perfil = Σ (centered_rating_i x vetor_i)
-                 normalizado para norma unitária
+                 normalizado para norma unitaria
  
     Referência: Géron, Hands-On ML, cap. 3 — Content-Based Filtering.
 
@@ -190,10 +190,10 @@ def build_user_profile_positive_only(
     user_ratings: List[Dict],
     games_df: pd.DataFrame,
     tfidf_matrix: np.ndarray,
-    min_rating: float = 4.0,
+    min_rating: float = 3.0,
 ) -> np.ndarray:
     """
-    Constrói o vetor de perfil do usuário usando APENAS jogos com rating >= min_rating.
+    Constroi o vetor de perfil do usuário usando APENAS jogos com rating >= min_rating.
 
     Estratégia:
         - Jogos com rating < min_rating são ignorados (peso = 0).
@@ -207,7 +207,7 @@ def build_user_profile_positive_only(
               rating 2 -> ignorado
               rating 1 -> ignorado
 
-        Perfil = soma(peso_i * vetor_i), normalizado para norma unitária.
+        Perfil = Σ (peso_i * vetor_i)/ Σ (peso_i), normalizado para norma unitaria.
 
     Args:
         user_ratings: lista de dicts com chaves id e rating
@@ -217,10 +217,11 @@ def build_user_profile_positive_only(
     Returns:
         user_vector: vetor numpy (1 x n_termos) representando o perfil
     """
-    # Mapeia game_id -> índice na matriz TF-IDF
+    # Mapeia game_id -> indice na matriz TF-IDF
     id_to_index = {str(game_id): idx for idx, game_id in enumerate(games_df["id"])}
 
     weighted_sum = np.zeros(tfidf_matrix.shape[1])
+    sum_weights = 0.0
     games_used = []
     skipped = []
     ignored_low = []
@@ -245,6 +246,7 @@ def build_user_profile_positive_only(
         game_vector = tfidf_matrix[idx].toarray().flatten()
 
         weighted_sum += weight * game_vector
+        sum_weights += weight
         games_used.append((game_id, rating, weight))
 
     if skipped:
@@ -254,6 +256,12 @@ def build_user_profile_positive_only(
 
     if len(games_used) == 0:
         raise ValueError("Nenhum jogo com rating >= min_rating encontrado para o usuário.")
+    
+    if sum_weights > 0:
+        user_vector = weighted_sum / sum_weights
+    else:
+        print("[Perfil] AVISO: soma de pesos zerada.")
+        user_vector = weighted_sum
 
     # Normaliza o vetor resultante (norma L2 = 1)
     norm = np.linalg.norm(weighted_sum)
@@ -267,6 +275,7 @@ def build_user_profile_positive_only(
     for gid, r, w in games_used:
         print(f"         id={gid}  rating={r}  peso={w:.1f}")
 
+    print("[Perfil]")
     return user_vector.reshape(1, -1)
 
 
@@ -354,7 +363,7 @@ class KNNRecommender:
         Recebe os ratings do usuário e retorna os K jogos mais recomendados.
 
         Args:
-            user_ratings: lista de dicts com 'id' e 'rating' (1-5)
+            user_ratings: lista de dicts com id e rating (1-5)
 
         Returns:
             DataFrame com top-K recomendações e scores de similaridade
@@ -363,7 +372,7 @@ class KNNRecommender:
         if not self._fitted:
             raise RuntimeError("Chame fit() antes de recommend().")
 
-        user_vector = build_user_profile(user_ratings, self.games_df, self.tfidf_matrix)
+        user_vector = build_user_profile_positive_only(user_ratings, self.games_df, self.tfidf_matrix)
         recommendations = find_knn_recommendations(
             user_vector, self.tfidf_matrix, self.games_df, user_ratings, k=k
         )
@@ -380,19 +389,20 @@ if __name__ == "__main__":
         sys.exit()
 
     # 1. Inicializa e treina o recomendador
-    recommender = KNNRecommender(GAMES_FILE_PATH)
+    k_neighb = 25
+    recommender = KNNRecommender(GAMES_FILE_PATH, k=k_neighb)
     recommender.fit()
 
     # 2. simulçao: dados mock
     user_ratings = [
         {"id": "227300",     "name": "Euro Truck Simulator 2",    "rating": 5},
         {"id": "292030", "name": "The Witcher 3: Wild Hunt",     "rating": 1},
-        {"id": "814380",    "name": "Sekiro™: Shadows Die Twice - GOTY Edition", "rating": 5},
+        {"id": "814380",    "name": "Sekiro™: Shadows Die Twice - GOTY Edition", "rating": 1},
         {"id": "730",     "name": "Counter-Strike 2",  "rating": 5},
         {"id": "365670",     "name": "Blender",   "rating": 1},
     ]
 
     recommendations = recommender.recommend(user_ratings)
 
-    print("\n=== TOP 15 JOGOS RECOMENDADOS ===")
+    print(f"\n=== TOP {k_neighb} JOGOS RECOMENDADOS ===")
     print(recommendations.to_string(index=False))

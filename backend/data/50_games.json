@@ -26,7 +26,7 @@
 {"id": "438100", "name": "VRChat", "genre": "Simulation", "perspective": "First-Person", "category": "Multiplayer"},
 {"id": "4000", "name": "Garry's Mod", "genre": "Simulation", "perspective": "First-Person", "category": "Multiplayer"},
 {"id": "236390", "name": "War Thunder", "genre": "Simulation", "perspective": "Third-Person", "category": "Multiplayer"},
-{"id": "227300", "name": "Euro Truck Simulator 2", "genre": "Simulation", "perspective": "Third-Person", "category": "Singleplayer"},
+{"id": "227300", "name": "Euro Truck Simulator 2", "genre": "Simulation", "perspective": "First-Person", "category": "Singleplayer"},
 {"id": "3164500", "name": "Schedule I", "genre": "Simulation", "perspective": "First-Person", "category": "Co-op"},
 {"id": "2281470", "name": "Your Train", "genre": "Simulation", "perspective": "2D", "category": "Singleplayer"},
 {"id": "381210", "name": "Dead by Daylight", "genre": "Survival Horror", "perspective": "Third-Person", "category": "Multiplayer"},
