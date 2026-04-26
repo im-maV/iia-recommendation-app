@@ -15,8 +15,8 @@
         <fa-icon [icon]="icons.faGamepad" />
         GameRec
       </div>
-      <h1 class="headline">Crie sua<br /><span>conta.</span></h1>
-      <p class="sub">Diga como quer ser chamado para começar.</p>
+      <h1 class="headline">Olá!<br /><span>Como se chama?</span></h1>
+      <p class="sub">Usaremos seu nome para personalizar sua experiência.</p>
     </div>
 
     <div class="field">
@@ -27,18 +27,18 @@
       <input
         id="userName"
         type="text"
-        placeholder="Como você se chama?"
+        placeholder="Digite seu nome..."
         maxlength="40"
         [ngModel]="inputName()"
-        (ngModelChange)="inputName.set($event)"
+        (ngModelChange)="onInputChange($event)"
         (keyup.enter)="onRegisterName()"
       />
     </div>
 
-    @if (showAlert()) {
+    @if (alertMessage()) {
       <div class="alert">
         <fa-icon [icon]="icons.faTriangleExclamation" />
-        Por favor, insira seu nome para continuar.
+        {{ alertMessage() }}
       </div>
     }
 
@@ -46,7 +46,7 @@
       @if (isLoading()) {
         <span class="spinner"></span>
       } @else {
-        Criar conta
+        Começar
         <fa-icon [icon]="icons.faArrowRight" />
       }
     </button>

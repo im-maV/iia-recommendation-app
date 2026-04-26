@@ -58,6 +58,9 @@
   flex-direction: column;
   flex: 1;
   margin-bottom: 2rem;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.4rem;
 }
 
 .rec-card {

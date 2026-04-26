@@ -3,6 +3,15 @@
   flex-direction: column;
   gap: 0.65rem;
   margin-bottom: 1.75rem;
+  max-height: 420px;
+  overflow-y: auto;
+  padding-right: 0.4rem;
+}
+
+.rate-header {
+  display: flex;
+  align-items: center;
+  margin-bottom: 1.25rem;
 }
 
 .rating-row {
@@ -99,5 +108,30 @@
 
   fa-icon {
     font-size: 0.9rem;
+  }
+}
+
+.btn-back {
+  display: flex;
+  align-items: center;
+  gap: 0.4rem;
+  background: transparent;
+  border: 1.5px solid var(--border);
+  border-radius: var(--r);
+  color: var(--muted);
+  font-size: 0.8rem;
+  padding: 0.4rem 0.85rem;
+  cursor: pointer;
+  transition:
+    color 0.2s,
+    border-color 0.2s;
+
+  fa-icon {
+    font-size: 0.75rem;
+  }
+
+  &:hover {
+    color: var(--text);
+    border-color: var(--muted);
   }
 }

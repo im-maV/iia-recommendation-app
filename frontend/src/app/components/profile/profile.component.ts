@@ -1,4 +1,4 @@
-import { Component, computed, inject, OnInit, signal } from '@angular/core';
+import { Component, computed, effect, inject, OnInit, signal } from '@angular/core';
 import { Router } from '@angular/router';
 import { UserStoreService } from '@services/user-store.service';
 import { APIService } from '@services/api.service';
@@ -26,7 +26,7 @@ interface SidebarConfig {
 
 const SIDEBAR_CONFIG: Record<ProfilePhase, SidebarConfig> = {
   select: {
-    sub: 'Escolha 5 jogos que você já jogou ou conhece.',
+    sub: 'Escolha entre 5 e 10 jogos que você já jogou ou conhece.',
     badge: { label: 'Seleção', icon: faListCheck, type: BadgeType.Select },
     currentStep: StepIndex.Select,
   },
@@ -48,25 +48,37 @@ export class Profile implements OnInit {
   private readonly apiService = inject(APIService);
   private readonly router = inject(Router);
 
-  readonly icons = { faGamepad, faListCheck, faStarHalfStroke, faCheck, faWandMagicSparkles };
+  readonly icons = {
+    faGamepad,
+    faListCheck,
+    faStarHalfStroke,
+    faCheck,
+    faWandMagicSparkles,
+  };
 
   readonly user = this.userStoreService.user;
 
-  readonly allGames = signal<gameType[]>([]);
-  readonly randomGames = signal<gameType[]>([]);
-  readonly finalSelectedGames = signal<gameType[]>([]);
+  readonly popularGames = signal<gameType[]>([]);
+  readonly selectedGames = signal<gameType[]>([]);
   readonly currentPhase = signal<ProfilePhase>('select');
   readonly loading = signal(false);
 
   readonly sidebarConfig = computed<SidebarConfig>(() => SIDEBAR_CONFIG[this.currentPhase()]);
 
+  constructor() {
+    effect(() => {
+      if (this.selectedGames().length >= 5) {
+        this.currentPhase.set('rate');
+      }
+    });
+  }
+
   ngOnInit(): void {
     this.getGames();
   }
 
-  onSelectionFinished(games: gameType[]): void {
-    this.finalSelectedGames.set(games);
-    this.currentPhase.set('rate');
+  goBackToSelect(): void {
+    this.currentPhase.set('select');
   }
 
   onRatingsSubmitted(ratedGames: gameType[]): void {
@@ -96,21 +108,11 @@ export class Profile implements OnInit {
           console.error('[Profile] Resposta sem body');
           return;
         }
-        this.allGames.set(body);
-        this.randomGames.set(this.pickRandom(body, 10));
+        this.popularGames.set(body);
       },
       error: (err: unknown) => {
         console.error('[Profile] Erro ao carregar jogos:', err);
       },
     });
-  }
-
-  private pickRandom<T>(arr: T[], count: number): T[] {
-    const shuffled = [...arr];
-    for (let i = shuffled.length - 1; i > 0; i--) {
-      const j = Math.floor(Math.random() * (i + 1));
-      [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
-    }
-    return shuffled.slice(0, count);
   }
 }

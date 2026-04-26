@@ -1,7 +1,7 @@
 <div class="select-header">
-  <p class="select-label">Selecione 5 jogos que você conhece</p>
-  <span class="select-count" [class.complete]="selectedIds().size === MAX_SELECTED">
-    {{ selectedIds().size }}/{{ MAX_SELECTED }}
+  <p class="select-label">Selecione de 5 a 10 jogos dos nossos mais populares</p>
+  <span class="select-count" [class.complete]="selectedIds().size >= MIN_SELECTED">
+    {{ selectedCount() }} selecionados
   </span>
 </div>
 
@@ -21,7 +21,7 @@
   }
 </ul>
 
-<button class="btn" [disabled]="selectedIds().size !== MAX_SELECTED" (click)="confirm()">
+<button class="btn" [disabled]="!canConfirm()" (click)="confirm()">
   Ir para avaliação
   <fa-icon [icon]="icons.faArrowRight" />
 </button>

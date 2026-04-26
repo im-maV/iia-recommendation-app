@@ -1,3 +1,9 @@
+<div class="rate-header">
+  <button class="btn-back" (click)="back()">
+    <fa-icon [icon]="icons.faArrowLeft" />
+    Voltar
+  </button>
+</div>
 <div class="rating-list">
   @for (game of selectedGames(); track game.id) {
     <div class="rating-row" [class.rated]="getRating(game.id) > 0">

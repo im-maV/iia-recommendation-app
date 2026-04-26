@@ -1,4 +1,4 @@
-import { Component, computed, input, output, signal } from '@angular/core';
+import { Component, computed, effect, input, model, output, signal } from '@angular/core';
 import { faArrowRight, faCheck } from '@fortawesome/free-solid-svg-icons';
 import { FontAwesomeModule } from '@fortawesome/angular-fontawesome';
 import { gameType } from '@models/user-type.model';
@@ -11,16 +11,30 @@ import { gameType } from '@models/user-type.model';
 })
 export class GameSelect {
   readonly icons = { faCheck, faArrowRight };
-  readonly MAX_SELECTED = 5;
+
+  readonly MIN_SELECTED = 5;
+  readonly MAX_SELECTED = 10;
 
   readonly games = input.required<gameType[]>();
-  readonly selectionFinished = output<gameType[]>();
+  readonly selectedGames = model<gameType[]>([]);
 
   private readonly selectedMap = signal<Map<number, gameType>>(new Map());
 
   readonly selectedIds = computed(() => new Set(this.selectedMap().keys()));
   readonly selectedCount = computed(() => this.selectedMap().size);
-  readonly canConfirm = computed(() => this.selectedCount() === this.MAX_SELECTED);
+  readonly canConfirm = computed(() => this.selectedCount() >= this.MIN_SELECTED);
+
+  constructor() {
+    effect(
+      () => {
+        const initial = this.selectedGames();
+        if (initial.length > 0 && this.selectedMap().size === 0) {
+          this.selectedMap.set(new Map(initial.map((g) => [g.id, g])));
+        }
+      },
+      { allowSignalWrites: true },
+    );
+  }
 
   isSelected(gameId: number): boolean {
     return this.selectedIds().has(gameId);
@@ -43,6 +57,6 @@ export class GameSelect {
 
   confirm(): void {
     if (!this.canConfirm()) return;
-    this.selectionFinished.emit([...this.selectedMap().values()]);
+    this.selectedGames.set([...this.selectedMap().values()]);
   }
 }
