@@ -23,23 +23,44 @@ from data.config import (
 
 def calculate_affinity(game: dict, profile: dict) -> str:
     """
-    Calcula afinidade entre um jogo e um perfil contando características
-    compatíveis (genre, perspective, category).
+    Calcula afinidade entre um jogo e um perfil usando pesos por característica.
 
-    Retorna 'high' (3 matches), 'medium' (2), ou 'low' (0-1).
+    Pesos:
+        - genre:       2 pontos (mais importante — define o tipo de experiência)
+        - perspective: 1 ponto
+        - category:    1 ponto
+
+    Score máximo: 4
+
+    Classificação:
+        score >= 3 → 'high'   (gênero bate + pelo menos mais uma característica)
+        score == 2 → 'medium' (só gênero bate, ou duas características menores)
+        score <= 1 → 'low'    (gênero não bate)
+
+    Parâmetros
+    ----------
+    game : dict
+        Dicionário com as chaves 'genre', 'perspective', 'category'.
+    profile : dict
+        Perfil de usuário com listas de valores aceitos (ou None para qualquer).
+
+    Retorna
+    -------
+    str
+        'high', 'medium' ou 'low'.
     """
-    matches = 0
+    score = 0
 
     if profile["genre"] is None or game["genre"] in profile["genre"]:
-        matches += 1
+        score += 2  # gênero é o fator mais importante
     if profile["perspective"] is None or game["perspective"] in profile["perspective"]:
-        matches += 1
+        score += 1
     if profile["category"] is None or game["category"] in profile["category"]:
-        matches += 1
+        score += 1
 
-    if matches == 3:
+    if score >= 3:
         return "high"
-    elif matches == 2:
+    elif score == 2:
         return "medium"
     else:
         return "low"
@@ -49,6 +70,10 @@ def generate_rating(affinity: str, rng: np.random.Generator) -> int:
     """
     Gera uma nota inteira (dentro de RATING_SCALE) via distribuição gaussiana
     com base no nível de afinidade.
+
+    O ruído gaussiano simula a variação natural de preferências individuais:
+    um usuário pode dar 3 para um jogo 'high' se estiver cansado do gênero,
+    ou 4 para um jogo 'low' se simplesmente gostar de algo diferente.
     """
     params = DISTRIBUTIONS[affinity]
     rating_float = rng.normal(loc=params["loc"], scale=params["scale"])
@@ -83,9 +108,24 @@ def generate_utility_matrix(
     """
     Gera a matriz de utilidade (usuários × jogos) com notas inteiras de 1 a 5.
 
-    Retorna DataFrame com shape (100, 50):
-        Índice  : 'User_001' ... 'User_100'
-        Colunas : nomes dos jogos
+    Cada usuário avalia ~65% dos jogos (rating_rate), escolhidos aleatoriamente.
+    A nota de cada jogo depende da afinidade entre o jogo e o perfil do usuário,
+    calculada por calculate_affinity() e ruidificada por generate_rating().
+
+    Parâmetros
+    ----------
+    games : pd.DataFrame
+        Lista de jogos com colunas 'name', 'genre', 'perspective', 'category'.
+    rating_rate : float
+        Fração de jogos avaliados por usuário (padrão: 0.65).
+    seed : int
+        Semente para reprodutibilidade.
+
+    Retorna
+    -------
+    pd.DataFrame
+        Shape (100, 50). Índice: 'User_001'...'User_100'.
+        Colunas: nomes dos jogos. NaN = jogo não avaliado.
     """
     rng = np.random.default_rng(seed)
 
