@@ -68,6 +68,5 @@ Thumbs.db
 
 # specific files
 games.json
-games_filtered.json
 balanced_games_estratificado.py
 50_games_estratificado.json
